@@ -8,28 +8,37 @@ use Illuminate\Support\Facades\Http; // Pour appeler l'API
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
+        $lists = $user->foodLists;
 
-        // 1. On récupère la première liste de l'utilisateur (ou on en crée une s'il n'en a pas)
-        $list = $user->foodLists()->firstOrCreate(['name' => 'Ma Liste']);
+        if ($lists->isEmpty()) {
+            $list = $user->foodLists()->create(['name' => 'Ma Liste']);
+            $lists = collect([$list]);
+        }
 
-        // 2. On récupère UNIQUEMENT les produits de cette liste
-        $products = $list->products;
+        // On regarde si un ID de liste est passé dans l'URL (ex: /dashboard?list=2)
+        // Sinon, on prend la première liste du compte
+        $currentListId = $request->get('list', $lists->first()->id);
+        $currentList = $user->foodLists()->findOrFail($currentListId);
 
-        // 3. Tes calculs de statistiques restent les mêmes, mais basés sur $products
+        // On garde l'ID en session pour s'en souvenir lors du scan
+        session(['active_list_id' => $currentList->id]);
+
+        $products = $currentList->products;
+
+        // Tes stats (inchangées)
         $totalProducts = $products->count();
         $avgCalories = $products->avg('calories') ?? 0;
         $healthyCount = $products->whereIn('nutriscore', ['A', 'B'])->count();
-
         $stats = [
             'Sain' => $healthyCount,
             'Modéré' => $products->where('nutriscore', 'C')->count(),
             'Mauvais' => $products->whereIn('nutriscore', ['D', 'E'])->count(),
         ];
 
-        return view('products.index', compact('products', 'totalProducts', 'avgCalories', 'healthyCount', 'stats'));
+        return view('products.index', compact('products', 'totalProducts', 'avgCalories', 'healthyCount', 'stats', 'lists', 'currentList'));
     }
 
     public function create() {
@@ -59,12 +68,11 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        $user = auth()->user();
+        // On récupère l'ID de la liste qu'on a stocké en session à l'étape 1
+        // Si la session est vide (rare), on prend la première liste de l'user
+        $listId = session('active_list_id', auth()->user()->foodLists()->first()->id);
+        $list = auth()->user()->foodLists()->findOrFail($listId);
 
-        // On récupère la liste par défaut de l'utilisateur
-        $list = $user->foodLists()->firstOrCreate(['name' => 'Ma Liste']);
-
-        // On ajoute le produit en le liant à cette liste
         $list->products()->create([
             'name' => $request->name,
             'brand' => $request->brand,
@@ -73,7 +81,18 @@ class ProductController extends Controller
             'barcode' => $request->barcode,
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'Produit ajouté !');
+        return redirect()->route('dashboard', ['list' => $listId])->with('success', 'Produit ajouté à ' . $list->name);
+    }
+
+    public function storeList(Request $request)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+
+        auth()->user()->foodLists()->create([
+            'name' => $request->name
+        ]);
+
+        return redirect()->back()->with('success', 'Nouvelle liste créée !');
     }
 
     public function destroy($id) {

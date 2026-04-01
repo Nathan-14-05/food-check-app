@@ -15,6 +15,30 @@
 
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
+            <div class="mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">Mes Listes</h3>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($lists as $list)
+                                <a href="{{ route('dashboard', ['list' => $list->id]) }}"
+                                   class="px-4 py-2 rounded-xl text-sm font-bold transition {{ $currentList->id == $list->id ? 'bg-blue-600 text-white shadow-md shadow-blue-100' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
+                                    {{ $list->name }}
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <form action="{{ route('food-lists.store') }}" method="POST" class="flex gap-2">
+                        @csrf
+                        <input type="text" name="name" placeholder="Nom de la nouvelle liste..." required
+                               class="border-gray-200 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-sm w-full md:w-64">
+                        <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-black transition">
+                            + Créer
+                        </button>
+                    </form>
+                </div>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
                     <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-2xl">📦</div>
@@ -66,7 +90,7 @@
 
                 <div class="lg:col-span-2 bg-white shadow-sm rounded-2xl overflow-hidden border border-gray-100">
                     <div class="p-6 border-b border-gray-50">
-                        <h2 class="text-lg font-bold text-gray-800">Historique des scans</h2>
+                        <h2 class="text-lg font-bold text-gray-800">Historique des scans ({{ $currentList->name }})</h2>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -110,7 +134,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="p-10 text-center text-gray-400 italic">Aucun aliment enregistré pour le moment.</td>
+                                    <td colspan="4" class="p-10 text-center text-gray-400 italic">Aucun aliment enregistré dans cette liste.</td>
                                 </tr>
                             @endforelse
                             </tbody>

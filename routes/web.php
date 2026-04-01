@@ -15,6 +15,9 @@ Route::middleware('auth')->group(function () {
     // 1. Ton Dashboard (Page principale)
     Route::get('/dashboard', [ProductController::class, 'index'])->name('dashboard');
 
+    // 1.5 Création d'une nouvelle liste d'aliments
+    Route::post('/food-lists', [ProductController::class, 'storeList'])->name('food-lists.store');
+
     // 2. Affichage du formulaire de scan (Ta page 404 actuelle)
     Route::get('/aliments/nouveau', [ProductController::class, 'create'])->name('products.create');
 
