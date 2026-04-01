@@ -1,87 +1,105 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Scanner un nouveau produit') }}
+        </h2>
+    </x-slot>
 
-@section('content')
-    <div class="max-w-md mx-auto bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
-        <div class="bg-gray-50 p-6 border-b border-gray-100 text-center">
-            <div id="image-preview-container" class="mb-4 hidden">
-                <img id="image-preview" src="" class="w-24 h-24 mx-auto object-contain rounded-lg shadow-md bg-white p-1 border">
+    <div class="py-12">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+
+                <h1 class="text-2xl font-bold mb-6 text-gray-800">Ajouter un produit</h1>
+
+                <div class="mb-8 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                    <label class="block text-sm font-bold text-blue-800 mb-2">Scanner ou saisir le code-barres</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="barcode_input" placeholder="Ex: 3017620422003"
+                               class="flex-1 border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <button type="button" onclick="searchProduct()"
+                                class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition">
+                            Rechercher
+                        </button>
+                    </div>
+                    <p id="status_msg" class="mt-2 text-sm text-gray-500"></p>
+                </div>
+
+                <form action="{{ route('products.store') }}" method="POST" id="product_form" class="hidden space-y-4">
+                    @csrf
+                    <input type="hidden" name="barcode" id="form_barcode">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Nom du produit</label>
+                            <input type="text" name="name" id="form_name" required readonly
+                                   class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Marque</label>
+                            <input type="text" name="brand" id="form_brand" readonly
+                                   class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Calories (kcal/100g)</label>
+                            <input type="number" name="calories" id="form_calories" readonly
+                                   class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Nutri-Score</label>
+                            <input type="text" name="nutriscore" id="form_nutriscore" readonly
+                                   class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm font-bold text-center">
+                        </div>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-xl font-black uppercase tracking-widest hover:bg-green-700 transition shadow-lg">
+                            Confirmer et Ajouter au stock
+                        </button>
+                    </div>
+                </form>
+
             </div>
-            <h2 class="text-xl font-bold text-gray-800">Ajouter un aliment</h2>
-            <p class="text-gray-400 text-sm">Scannez ou saisissez les infos</p>
         </div>
-
-        <form action="/aliments" method="POST" class="p-6 space-y-4">
-            @csrf
-            <input type="hidden" name="image_url" id="image_url_input">
-
-            <div>
-                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Code-barres</label>
-                <div class="flex gap-2">
-                    <input type="text" id="barcode" name="barcode" class="w-full border-gray-200 border rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Ex: 3017620422003">
-                    <button type="button" onclick="fetchProductData()" class="bg-gray-800 text-white px-4 rounded-lg hover:bg-black transition">🔍</button>
-                </div>
-                <p id="loader" class="text-blue-500 text-[10px] mt-1 hidden animate-pulse uppercase font-bold tracking-widest">Recherche en cours...</p>
-            </div>
-
-            <div class="grid grid-cols-1 gap-4 pt-2">
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Nom du produit</label>
-                    <input type="text" id="name" name="name" required class="w-full border-gray-200 border rounded-lg p-2 outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Marque</label>
-                    <input type="text" id="brand" name="brand" required class="w-full border-gray-200 border rounded-lg p-2 outline-none focus:border-blue-500">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Calories</label>
-                    <input type="number" id="calories" name="calories" required class="w-full border-gray-200 border rounded-lg p-2 outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Nutriscore</label>
-                    <select id="nutriscore" name="nutriscore" required class="w-full border-gray-200 border rounded-lg p-2 outline-none focus:border-blue-500">
-                        <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="pt-6 flex gap-4">
-                <a href="/aliments" class="flex-1 text-center py-2 text-gray-400 hover:text-gray-600 text-sm font-semibold transition">Annuler</a>
-                <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition">Enregistrer</button>
-            </div>
-        </form>
     </div>
 
     <script>
-        function fetchProductData() {
-            const barcode = document.getElementById('barcode').value;
-            const loader = document.getElementById('loader');
-            if (barcode.length < 5) return;
-            loader.classList.remove('hidden');
+        async function searchProduct() {
+            const barcode = document.getElementById('barcode_input').value;
+            const status = document.getElementById('status_msg');
+            const form = document.getElementById('product_form');
 
-            fetch(`/api/product/${barcode}`)
-                .then(response => response.json())
-                .then(data => {
-                    loader.classList.add('hidden');
-                    if (!data.error) {
-                        document.getElementById('name').value = data.name;
-                        document.getElementById('brand').value = data.brand;
-                        document.getElementById('calories').value = Math.round(data.calories);
-                        document.getElementById('nutriscore').value = data.nutriscore;
+            if (!barcode) return;
 
-                        const previewContainer = document.getElementById('image-preview-container');
-                        const previewImg = document.getElementById('image-preview');
-                        const hiddenInput = document.getElementById('image_url_input');
+            status.innerText = "Recherche en cours...";
+            status.className = "mt-2 text-sm text-blue-600";
 
-                        if (data.image_url) {
-                            previewImg.src = data.image_url;
-                            hiddenInput.value = data.image_url;
-                            previewContainer.classList.remove('hidden');
-                        }
-                    }
-                });
+            try {
+                const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+                const data = await response.json();
+
+                if (data.status === 1) {
+                    const p = data.product;
+                    document.getElementById('form_barcode').value = barcode;
+                    document.getElementById('form_name').value = p.product_name || 'Inconnu';
+                    document.getElementById('form_brand').value = p.brands || 'Inconnue';
+                    document.getElementById('form_calories').value = p.nutriments['energy-kcal_100g'] || 0;
+                    document.getElementById('form_nutriscore').value = (p.nutrition_grades || 'N/A').toUpperCase();
+
+                    status.innerText = "Produit trouvé !";
+                    status.className = "mt-2 text-sm text-green-600";
+                    form.classList.remove('hidden');
+                } else {
+                    status.innerText = "Produit non trouvé sur Open Food Facts.";
+                    status.className = "mt-2 text-sm text-red-600";
+                    form.classList.add('hidden');
+                }
+            } catch (error) {
+                status.innerText = "Erreur lors de la connexion à l'API.";
+                status.className = "mt-2 text-sm text-red-600";
+            }
         }
     </script>
-@endsection
+</x-app-layout>

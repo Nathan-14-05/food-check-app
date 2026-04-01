@@ -8,22 +8,26 @@ use Illuminate\Support\Facades\Http; // Pour appeler l'API
 
 class ProductController extends Controller
 {
-    public function index() {
-        $products = Product::all();
+    public function index()
+    {
+        $user = auth()->user();
 
-        // Stats de base
+        // 1. On récupère la première liste de l'utilisateur (ou on en crée une s'il n'en a pas)
+        $list = $user->foodLists()->firstOrCreate(['name' => 'Ma Liste']);
+
+        // 2. On récupère UNIQUEMENT les produits de cette liste
+        $products = $list->products;
+
+        // 3. Tes calculs de statistiques restent les mêmes, mais basés sur $products
         $totalProducts = $products->count();
         $avgCalories = $products->avg('calories') ?? 0;
+        $healthyCount = $products->whereIn('nutriscore', ['A', 'B'])->count();
 
-        // Stats simplifiées pour le graphique
         $stats = [
-            'Sain' => $products->whereIn('nutriscore', ['A', 'B'])->count(),
+            'Sain' => $healthyCount,
             'Modéré' => $products->where('nutriscore', 'C')->count(),
             'Mauvais' => $products->whereIn('nutriscore', ['D', 'E'])->count(),
         ];
-
-        // On garde healthyCount pour ta carte du haut
-        $healthyCount = $stats['Sain'];
 
         return view('products.index', compact('products', 'totalProducts', 'avgCalories', 'healthyCount', 'stats'));
     }
@@ -53,9 +57,23 @@ class ProductController extends Controller
         return response()->json(['error' => 'Produit non trouvé'], 404);
     }
 
-    public function store(Request $request) {
-        Product::create($request->all());
-        return redirect('/aliments');
+    public function store(Request $request)
+    {
+        $user = auth()->user();
+
+        // On récupère la liste par défaut de l'utilisateur
+        $list = $user->foodLists()->firstOrCreate(['name' => 'Ma Liste']);
+
+        // On ajoute le produit en le liant à cette liste
+        $list->products()->create([
+            'name' => $request->name,
+            'brand' => $request->brand,
+            'calories' => $request->calories,
+            'nutriscore' => $request->nutriscore,
+            'barcode' => $request->barcode,
+        ]);
+
+        return redirect()->route('dashboard')->with('success', 'Produit ajouté !');
     }
 
     public function destroy($id) {
