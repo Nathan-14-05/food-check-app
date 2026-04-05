@@ -12,7 +12,9 @@ use Illuminate\View\View;
 class ProfileController extends Controller
 {
     /**
-     * Display the user's profile form.
+     * AFFICHAGE DU PROFIL
+     * Cette fonction renvoie simplement la vue du formulaire d'édition
+     * avec les données de l'utilisateur actuellement connecté.
      */
     public function edit(Request $request): View
     {
@@ -22,7 +24,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's profile information.
+     * MISE À JOUR DES INFOS (Nom, Email)
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
@@ -38,10 +40,12 @@ class ProfileController extends Controller
     }
 
     /**
-     * Delete the user's account.
+     * SUPPRESSION DU COMPTE (L'action la plus sensible)
      */
     public function destroy(Request $request): RedirectResponse
     {
+        // VÉRIFICATION : On demande obligatoirement le mot de passe actuel
+        // pour prouver que c'est bien le propriétaire qui supprime le compte.
         $request->validateWithBag('userDeletion', [
             'password' => ['required', 'current_password'],
         ]);
