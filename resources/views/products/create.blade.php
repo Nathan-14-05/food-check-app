@@ -67,36 +67,50 @@
 
     <script>
         async function searchProduct() {
+            // 1. RÉCUPÉRATION DES ÉLÉMENTS DU DOM (HTML)
             const barcode = document.getElementById('barcode_input').value;
             const status = document.getElementById('status_msg');
             const form = document.getElementById('product_form');
 
+            // SÉCURITÉ : Si le champ est vide, on arrête tout
             if (!barcode) return;
 
+            // 2. INTERACTION UTILISATEUR (UX)
+            // On informe l'utilisateur que le travail a commencé
             status.innerText = "Recherche en cours...";
             status.className = "mt-2 text-sm text-blue-600";
 
+            /**
+             * BLOC TRY / CATCH (Gestion d'erreurs)
+             * On "essaie" de contacter l'API. Si internet coupe ou si l'API est en panne,
+             * le script ira directement dans le "catch" au lieu de faire planter la page.
+             */
             try {
                 const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
                 const data = await response.json();
 
                 if (data.status === 1) {
                     const p = data.product;
+                    // 5. REMPLISSAGE AUTOMATIQUE DU FORMULAIRE
+                    // On injecte chaque donnée reçue dans l'input correspondant
                     document.getElementById('form_barcode').value = barcode;
                     document.getElementById('form_name').value = p.product_name || 'Inconnu';
                     document.getElementById('form_brand').value = p.brands || 'Inconnue';
                     document.getElementById('form_calories').value = p.nutriments['energy-kcal_100g'] || 0;
                     document.getElementById('form_nutriscore').value = (p.nutrition_grades || 'N/A').toUpperCase();
 
+                    // 6. FINALISATION VISUELLE
                     status.innerText = "Produit trouvé !";
                     status.className = "mt-2 text-sm text-green-600";
                     form.classList.remove('hidden');
                 } else {
+                    // Cas où le code-barres n'existe pas dans la base mondiale
                     status.innerText = "Produit non trouvé sur Open Food Facts.";
                     status.className = "mt-2 text-sm text-red-600";
                     form.classList.add('hidden');
                 }
             } catch (error) {
+                // En cas de problème réseau ou serveur API injoignable
                 status.innerText = "Erreur lors de la connexion à l'API.";
                 status.className = "mt-2 text-sm text-red-600";
             }
