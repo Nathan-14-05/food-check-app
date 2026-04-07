@@ -24,10 +24,45 @@ L'application exploite l'API mondiale **Open Food Facts** pour garantir des donn
 Le projet repose sur une structure relationnelle robuste permettant une évolution vers le multi-utilisateur et le partage de listes.
 
 ### 🗄️ Schéma de la Base de Données (Concepts)
+
+### 🗄️ Schéma de la Base de Données (Concepts)
+
+### 🗄️ Schéma de la Base de Données (Concepts)
+
+```mermaid
+classDiagram
+    class users {
+        +bigInt id (PK)
+        name : string
+        email : string (unique)
+        password : string
+        created_at : timestamp
+    }
+
+    class food_lists {
+        +bigInt id (PK)
+        name : string
+        user_id : bigInt (FK)
+        created_at : timestamp
+    }
+
+    class products {
+        +bigInt id (PK)
+        name : string
+        brand : string
+        barcode : string
+        calories : int
+        nutriscore : char(1)
+        food_list_id : bigInt (FK)
+        created_at : timestamp
+    }
+
+    users "1" --> "0..*" food_lists : possède
+    food_lists "1" --> "0..*" products : contient
+```
 1.  **Users** : Gère l'accès sécurisé à l'application.
 2.  **Lists** : Conteneurs personnels (ex: "Mon Frigo", "Liste de Courses").
 3.  **Products** : Stockage des informations nutritionnelles liées à une liste.
-4.  **Pivot (list_user)** : Table de liaison permettant de **partager** une liste entre plusieurs utilisateurs avec différents rôles.
 
 ---
 
