@@ -25,9 +25,9 @@ Le projet repose sur une structure relationnelle robuste permettant une évoluti
 
 ### 🗄️ Schéma de la Base de Données (Concepts)
 
-### 🗄️ Schéma de la Base de Données (Concepts)
-
-### 🗄️ Schéma de la Base de Données (Concepts)
+1.  **Users** : Gère l'accès sécurisé à l'application.
+2.  **Lists** : Conteneurs personnels (ex: "Mon Frigo", "Liste de Courses").
+3.  **Products** : Stockage des informations nutritionnelles liées à une liste.
 
 ```mermaid
 classDiagram
@@ -60,9 +60,6 @@ classDiagram
     users "1" --> "0..*" food_lists : possède
     food_lists "1" --> "0..*" products : contient
 ```
-1.  **Users** : Gère l'accès sécurisé à l'application.
-2.  **Lists** : Conteneurs personnels (ex: "Mon Frigo", "Liste de Courses").
-3.  **Products** : Stockage des informations nutritionnelles liées à une liste.
 
 ---
 
